@@ -26,7 +26,6 @@ class WSGISever(object):
     def set_app(self, application):
         self.application = application
 
-
     def server_forever(self):
         listen_socket = self.listen_socket
         while True:
@@ -53,7 +52,7 @@ class WSGISever(object):
         request_line = text.splitlines()[0].rstrip('\r\n')
         (
             self.request_method,
-            self.request_path,
+            self.path,
             self.request_version
         ) = request_line.split()
 
@@ -75,7 +74,7 @@ class WSGISever(object):
 
     def start_response(self, status, response_headers, exc_info=None):
         server_headers = [
-            ('Date', 'Tue, 31 Mar 2015 12:54:48 GMT'),
+            ('Date', 'Tue, 31 Mar 2017 12:54:48 GMT'),
             ('Server', 'WSGIServer 0.2'),
         ]
         self.headers_set = [status, response_headers + server_headers]
@@ -104,3 +103,16 @@ def make_server(server_address, application):
     server.set_app(application)
     return server
 
+
+SERVER_ADDRESS = (HOST, PORT) = '', 8888
+
+if __name__ == '__main__':
+    if len(sys.argv) < 2:
+        sys.exit('provide a wsgi application object as a callable module')
+    app_path = sys.argv[1]
+    module, application = app_path.split(':')
+    module = __import__(module)
+    application = getattr(module, application)
+    httpd = make_server(SERVER_ADDRESS, application)
+    print('WSGIServer: Serving HTTP on port {port} ...\n'.format(port=PORT))
+    httpd.server_forever()
